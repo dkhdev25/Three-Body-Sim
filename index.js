@@ -17,6 +17,8 @@ const camera = new THREE.PerspectiveCamera(
   5000
 );
 
+const G = 100
+
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -48,20 +50,72 @@ const sunMaterial3 = new THREE.MeshStandardMaterial({
 });
 
 const sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
-sunSphere.position.set(0, 18, 10);
+sunSphere.position.set(0, 15, 0);
 scene.add(sunSphere);
 
 const sunSphere2 = new THREE.Mesh(sunGeometry, sunMaterial2);
-sunSphere2.position.set(-20, -12, -8);
+sunSphere2.position.set(-18, -10, 0);
 scene.add(sunSphere2);
 
 const sunSphere3 = new THREE.Mesh(sunGeometry, sunMaterial3);
-sunSphere2.position.set(20, -12, 8);
+sunSphere3.position.set(18, -10, 0);
 scene.add(sunSphere3);
 
 sunSphere.scale.setScalar(1.4);
+const sun1Mass = sunSphere.scale.x * 10;
+const sun1Vel = new THREE.Vector3(-0.30, 0, 0);
+
 sunSphere2.scale.setScalar(1.0);
+const sun2Mass = sunSphere2.scale.x * 10;
+const sun2Vel = new THREE.Vector3(0.20, 0.30, 0);
+
 sunSphere3.scale.setScalar(0.8);
+const sun3Mass = sunSphere3.scale.x * 10;
+const sun3Vel = new THREE.Vector3(0.20, -0.30, 0);
+
+const bodies = [
+  {
+    mesh: sunSphere,
+    mass: sun1Mass,
+    velocity: sun1Vel,
+    acceleration: new THREE.Vector3(),
+    trail: []
+  },
+
+  {
+    mesh: sunSphere2,
+    mass: sun2Mass,
+    velocity: sun2Vel,
+    acceleration: new THREE.Vector3(),
+    trail: []
+  },
+  {
+    mesh: sunSphere3,
+    mass: sun3Mass,
+    velocity: sun3Vel,
+    acceleration: new THREE.Vector3(),
+    trail: []
+  }
+];
+
+// trails
+const trailMaterial = new THREE.LineBasicMaterial({
+  color: 0xffffff
+});
+
+for (const body of bodies) {
+
+  const trailGeometry = new THREE.BufferGeometry();
+
+  const trailLine = new THREE.Line(
+    trailGeometry,
+    trailMaterial
+  );
+
+  scene.add(trailLine);
+
+  body.trailLine = trailLine;
+}
 
 // corona
 const coronaGeometry = new THREE.SphereGeometry(1.25, 32, 16);
@@ -189,9 +243,9 @@ stars3.frustumCulled = false;
 scene.add(stars3);
 
 // camera
-camera.position.set(0, 4, 40);
+camera.position.set(0, 0, 65);
 
-controls.target.set(0, 2, 0);
+controls.target.set(0, 0, 0);
 controls.update();
 
 const renderScene = new RenderPass(scene, camera);
@@ -205,10 +259,72 @@ const bloomPass = new UnrealBloomPass(
 );
 composer.addPass(bloomPass);
 
+let lastTime = 0;
+
 // animation
 function animate( time ) {
+
+    // delta time
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
     controls.update();
 
+    // physics
+    for (const A of bodies) {
+
+      const totalForce = new THREE.Vector3();
+
+      for (const B of bodies) {
+        if (A === B) continue;
+        
+        const direction = new THREE.Vector3()
+          .subVectors(B.mesh.position, A.mesh.position);
+        const distance = Math.max(direction.length(), 2);
+        
+        direction.normalize();
+
+        const forceStrength =
+          G * A.mass * B.mass / (distance ** 2);
+        
+        const force = direction.clone()
+          .multiplyScalar(forceStrength);
+
+        totalForce.add(force);
+      }
+
+      // calculate acceleration Newton's Law
+      const acceleration = totalForce.clone()
+        .divideScalar(A.mass);
+
+      // store acceleration
+      A.acceleration.copy(acceleration);
+
+    }
+
+    for (const A of bodies) {
+      A.velocity.add(
+      A.acceleration.clone().multiplyScalar(dt)
+      );
+    }
+
+    for (const A of bodies) {
+      A.mesh.position.add(
+      A.velocity.clone().multiplyScalar(dt)
+      );
+
+    A.trail.push(A.mesh.position.clone());
+    
+    if (A.trail.length > 500) {
+      A.trail.shift();
+    }
+
+   if (A.trail.length > 1) {
+      A.trailLine.geometry.setFromPoints(A.trail);
+    }
+  }
+
+    // corona
     corona.rotation.y += 0.001;
     corona.rotation.x += 0.0003;
 
@@ -227,6 +343,7 @@ function animate( time ) {
     corona2.scale.setScalar(pulse);
     corona3.scale.setScalar(pulse);
 
+    // distance effect
     const distance = camera.position.length();
     const t = Math.min(distance / 200, 1);
 
@@ -234,6 +351,7 @@ function animate( time ) {
     sunMaterial2.emissiveIntensity = 2.5 - (1.2 * t);
     sunMaterial3.emissiveIntensity = 2.5 - (1.2 * t);
 
+    // sun rotation
     sunSphere.rotation.y += 0.002;
     sunSphere2.rotation.y += 0.002;
     sunSphere3.rotation.y += 0.002;
