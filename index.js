@@ -19,16 +19,16 @@ const sunTexture = loader.load( './suntexture.jpeg' );
 sunTexture.colorSpace = THREE.SRGBColorSpace;
 sunTexture.wrapS = THREE.RepeatWrapping;
 
-const spaceTexture = loader.load( './spacetexture.jpg' );
+const spaceTexture = loader.load( './spacetexture2.jpg' );
 spaceTexture.colorSpace = THREE.SRGBColorSpace;
 
 // sun1
 const sunGeometry = new THREE.SphereGeometry( 1, 32, 16 );
 const sunMaterial = new THREE.MeshStandardMaterial({
   map: sunTexture,
-  emissive: new THREE.Color(0xffffff),
+  emissive: new THREE.Color(0xffffcc),
   emissiveMap: sunTexture, 
-  emissiveIntensity: 2.1,               
+  emissiveIntensity: 3.0,               
   roughness: 1,
   metalness: 0
 });
