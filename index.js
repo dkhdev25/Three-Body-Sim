@@ -17,14 +17,32 @@ const camera = new THREE.PerspectiveCamera(
   5000
 );
 
-const G = 100
+// settings
+const G = 1
+const SIM_SPEED = 1;
 
+const FREEZE_DISTANCE = 1000;
+
+const BODY1_MASS = 14;
+const BODY2_MASS = 10;
+const BODY3_MASS = 8;
+
+const BODY1_START_POS = new THREE.Vector3(0, 15, 0);
+const BODY2_START_POS = new THREE.Vector3(-18, -10, 0);
+const BODY3_START_POS = new THREE.Vector3(18, -10, 0);
+
+const BODY1_START_VEL = new THREE.Vector3(-0.30, 0, 0);
+const BODY2_START_VEL = new THREE.Vector3(0.20, 0.30, 0);
+const BODY3_START_VEL = new THREE.Vector3(0.20, -0.30, 0);
+
+// setup
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setAnimationLoop( animate );
 document.body.appendChild( renderer.domElement );
 const controls = new OrbitControls( camera, renderer.domElement );
+controls.zoomSpeed = 2.5;
 controls.minDistance = 3;
 controls.maxDistance = 500;
 const composer = new EffectComposer(renderer);
@@ -50,15 +68,15 @@ const sunMaterial3 = new THREE.MeshStandardMaterial({
 });
 
 const sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
-sunSphere.position.set(0, 15, 0);
+sunSphere.position.copy(BODY1_START_POS);
 scene.add(sunSphere);
 
 const sunSphere2 = new THREE.Mesh(sunGeometry, sunMaterial2);
-sunSphere2.position.set(-18, -10, 0);
+sunSphere2.position.copy(BODY2_START_POS);
 scene.add(sunSphere2);
 
 const sunSphere3 = new THREE.Mesh(sunGeometry, sunMaterial3);
-sunSphere3.position.set(18, -10, 0);
+sunSphere3.position.copy(BODY3_START_POS);
 scene.add(sunSphere3);
 
 sunSphere.scale.setScalar(1.4);
@@ -79,7 +97,7 @@ const bodies = [
     mass: sun1Mass,
     velocity: sun1Vel,
     acceleration: new THREE.Vector3(),
-    trail: []
+    frozen: false
   },
 
   {
@@ -87,35 +105,16 @@ const bodies = [
     mass: sun2Mass,
     velocity: sun2Vel,
     acceleration: new THREE.Vector3(),
-    trail: []
+    frozen: false
   },
   {
     mesh: sunSphere3,
     mass: sun3Mass,
     velocity: sun3Vel,
     acceleration: new THREE.Vector3(),
-    trail: []
+    frozen: false
   }
 ];
-
-// trails
-const trailMaterial = new THREE.LineBasicMaterial({
-  color: 0xffffff
-});
-
-for (const body of bodies) {
-
-  const trailGeometry = new THREE.BufferGeometry();
-
-  const trailLine = new THREE.Line(
-    trailGeometry,
-    trailMaterial
-  );
-
-  scene.add(trailLine);
-
-  body.trailLine = trailLine;
-}
 
 // corona
 const coronaGeometry = new THREE.SphereGeometry(1.25, 32, 16);
@@ -265,17 +264,19 @@ let lastTime = 0;
 function animate( time ) {
 
     // delta time
-    const dt = (time - lastTime) / 1000;
+    const dt = 1//(time - lastTime) / 1000;
     lastTime = time;
 
     controls.update();
 
     // physics
     for (const A of bodies) {
+      if (A.frozen) continue;
 
       const totalForce = new THREE.Vector3();
 
       for (const B of bodies) {
+        if (B.frozen) continue;
         if (A === B) continue;
         
         const direction = new THREE.Vector3()
@@ -303,26 +304,29 @@ function animate( time ) {
     }
 
     for (const A of bodies) {
+      if (A.frozen) continue;
       A.velocity.add(
       A.acceleration.clone().multiplyScalar(dt)
       );
     }
 
+    const center = new THREE.Vector3();
+
+    center.add(sunSphere.position);
+    center.add(sunSphere2.position);
+    center.add(sunSphere3.position);
+
+    center.divideScalar(3);
+
     for (const A of bodies) {
+      if (A.frozen) continue;
       A.mesh.position.add(
       A.velocity.clone().multiplyScalar(dt)
       );
-
-    A.trail.push(A.mesh.position.clone());
-    
-    if (A.trail.length > 500) {
-      A.trail.shift();
+      if (A.mesh.position.distanceTo(center) > 1000) {
+        A.frozen = true;
+      }
     }
-
-   if (A.trail.length > 1) {
-      A.trailLine.geometry.setFromPoints(A.trail);
-    }
-  }
 
     // corona
     corona.rotation.y += 0.001;
