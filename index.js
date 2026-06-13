@@ -1,6 +1,7 @@
 // npx vite serve
 
 // import
+import './style.css';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -19,7 +20,7 @@ const camera = new THREE.PerspectiveCamera(
 
 // settings
 const G = 1
-const SIM_SPEED = 1;
+const SIM_SPEED = 10;
 
 const FREEZE_DISTANCE = 1000;
 
@@ -35,6 +36,10 @@ const BODY1_START_VEL = new THREE.Vector3(-0.30, 0, 0);
 const BODY2_START_VEL = new THREE.Vector3(0.20, 0.30, 0);
 const BODY3_START_VEL = new THREE.Vector3(0.20, -0.30, 0);
 
+const CAMERA_ZOOM_SPEED = 2.5;
+const CAMERA_MIN_DISTANCE = 3;
+const CAMERA_MAX_DISTANCE = 500;
+
 // setup
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -42,9 +47,9 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setAnimationLoop( animate );
 document.body.appendChild( renderer.domElement );
 const controls = new OrbitControls( camera, renderer.domElement );
-controls.zoomSpeed = 2.5;
-controls.minDistance = 3;
-controls.maxDistance = 500;
+controls.zoomSpeed = CAMERA_ZOOM_SPEED;
+controls.minDistance = CAMERA_MIN_DISTANCE;
+controls.maxDistance = CAMERA_MAX_DISTANCE;
 const composer = new EffectComposer(renderer);
 
 // 3 bodies
@@ -79,17 +84,17 @@ const sunSphere3 = new THREE.Mesh(sunGeometry, sunMaterial3);
 sunSphere3.position.copy(BODY3_START_POS);
 scene.add(sunSphere3);
 
-sunSphere.scale.setScalar(1.4);
-const sun1Mass = sunSphere.scale.x * 10;
-const sun1Vel = new THREE.Vector3(-0.30, 0, 0);
+sunSphere.scale.setScalar(BODY1_MASS / 10);
+const sun1Mass = BODY1_MASS;
+const sun1Vel = BODY1_START_VEL.clone();
 
-sunSphere2.scale.setScalar(1.0);
-const sun2Mass = sunSphere2.scale.x * 10;
-const sun2Vel = new THREE.Vector3(0.20, 0.30, 0);
+sunSphere2.scale.setScalar(BODY2_MASS / 10);
+const sun2Mass = BODY2_MASS;
+const sun2Vel = BODY2_START_VEL.clone();
 
-sunSphere3.scale.setScalar(0.8);
-const sun3Mass = sunSphere3.scale.x * 10;
-const sun3Vel = new THREE.Vector3(0.20, -0.30, 0);
+sunSphere3.scale.setScalar(BODY3_MASS / 10);
+const sun3Mass = BODY3_MASS;
+const sun3Vel = BODY3_START_VEL.clone();
 
 const bodies = [
   {
@@ -259,12 +264,36 @@ const bloomPass = new UnrealBloomPass(
 composer.addPass(bloomPass);
 
 let lastTime = 0;
+let firstFrame = true;
+
+window.addEventListener('resize', () => {
+
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+  );
+
+  composer.setSize(
+    window.innerWidth,
+    window.innerHeight
+  );
+
+});
 
 // animation
 function animate( time ) {
 
+    if (firstFrame) {
+      lastTime = time;
+      firstFrame = false;
+    return;
+    }
+
     // delta time
-    const dt = 1//(time - lastTime) / 1000;
+    const dt = ((time - lastTime) / 1000) * SIM_SPEED;
     lastTime = time;
 
     controls.update();
@@ -323,7 +352,7 @@ function animate( time ) {
       A.mesh.position.add(
       A.velocity.clone().multiplyScalar(dt)
       );
-      if (A.mesh.position.distanceTo(center) > 1000) {
+      if (A.mesh.position.distanceTo(center) > FREEZE_DISTANCE) {
         A.frozen = true;
       }
     }

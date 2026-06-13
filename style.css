@@ -1,0 +1,115 @@
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#banner{
+    width:100%;
+    height:50px;
+
+    background:rgb(250, 92, 92);
+
+    position: relative;
+}
+
+#title {
+    position: absolute;
+    left: 55px;
+    top: 6px;
+
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+
+    color: white;
+    font-size: 28px;
+}
+
+#logo {
+    position: absolute;
+
+    left: 10px;
+    top: 7px;
+
+    width: 35px;
+    height: 35px;
+}
+
+#terminal {
+    position: fixed;
+
+    left: 50%;
+    bottom: 0px;
+
+    transform: translateX(-50%);
+
+    width: 100%;
+    height: 150px;
+
+    background: rgba(24, 24, 24, 0.95);
+
+    border: 1px solid #444;
+
+    overflow: hidden;
+
+    backdrop-filter: blur(10px);
+}
+
+#terminal-header {
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 15px;
+
+    background: #2b2b2b;
+
+    color: white;
+
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+
+    border-bottom: 1px solid #444;
+}
+
+#terminal-output {
+    padding: 8px 15px;
+
+    line-height: 1;
+
+    color: #d4d4d4;
+
+    font-family: Consolas, monospace;
+    font-size: 15px;
+
+    height: calc(100% - 72px);
+
+    overflow-y: auto;
+
+    white-space: pre-wrap;
+
+    caret-color: white;
+
+    outline: none;
+}
+
+#cursor {
+    display: inline-block;
+
+    width: 9px;
+    height: 16px;
+
+    background: white;
+
+    vertical-align: middle;
+
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
