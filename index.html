@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-    </style>
   </head>
   <body>
     <script type="module" src="/index.js"></script>
@@ -15,9 +14,20 @@
       <img id="logo" src="itchio.svg">
       <div id="title">3-Body System Simulation</div>
       </div>
+
+      <div id="body-tabs">
+        <div class="body-tab active">Body #1</div>
+        <div class="body-tab">Body #2</div>
+        <div class="body-tab">Body #3</div>
+      </div>
       
-    <div id="left-panel-top"></div>
-    <div id="left-panel-bottom"></div>  
+        <div id="left-panel-top">
+          <div class="panel-header">GLOBAL SETTINGS</div>
+        </div>
+
+        <div id="left-panel-bottom">
+          <div class="panel-header">SELECTED STAR</div>
+        </div>
 
     <div id="terminal">
       <div id="terminal-header">TERMINAL</div>

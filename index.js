@@ -40,6 +40,21 @@ const CAMERA_ZOOM_SPEED = 2.5;
 const CAMERA_MIN_DISTANCE = 3;
 const CAMERA_MAX_DISTANCE = 500;
 
+// UI
+const tabs = document.querySelectorAll(".body-tab");
+
+tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+
+        tabs.forEach(tab => {
+            tab.classList.remove("active");
+        });
+
+        tab.classList.add("active");
+
+    });
+});
+
 // setup
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -120,6 +135,73 @@ const bodies = [
     frozen: false
   }
 ];
+
+// arrow creation
+const velArrow = new THREE.ArrowHelper(
+  new THREE.Vector3(1, 0, 0),
+  sunSphere.position,
+  10,
+  0x888888,
+  1.5,
+  1
+);
+
+scene.add(velArrow);
+
+const gravityArrow = new THREE.ArrowHelper(
+  new THREE.Vector3(0, -1, 0),
+  sunSphere.position,
+  7,
+  0x888888,
+  1,
+  1
+);
+
+scene.add(gravityArrow);
+
+const velArrow2 = new THREE.ArrowHelper(
+  new THREE.Vector3(1, 0, 0),
+  sunSphere2.position,
+  10,
+  0x888888,
+  1.5,
+  1
+);
+
+scene.add(velArrow2);
+
+const gravityArrow2 = new THREE.ArrowHelper(
+  new THREE.Vector3(0, -1, 0),
+  sunSphere2.position,
+  7,
+  0x888888,
+  1,
+  1
+);
+
+scene.add(gravityArrow2);
+
+const velArrow3 = new THREE.ArrowHelper(
+  new THREE.Vector3(1, 0, 0),
+  sunSphere3.position,
+  10,
+  0x888888,
+  1.5,
+  1
+);
+
+scene.add(velArrow3);
+
+const gravityArrow3 = new THREE.ArrowHelper(
+  new THREE.Vector3(0, -1, 0),
+  sunSphere3.position,
+  7,
+  0x888888,
+  1,
+  1
+);
+
+scene.add(gravityArrow3);
 
 // corona
 const coronaGeometry = new THREE.SphereGeometry(1.25, 32, 16);
@@ -356,6 +438,37 @@ function animate( time ) {
         A.frozen = true;
       }
     }
+
+    // arrows
+    velArrow.position.copy(bodies[0].mesh.position);
+    velArrow.setDirection(
+    bodies[0].velocity.clone().normalize()
+    );
+
+    gravityArrow.position.copy(bodies[0].mesh.position);
+    gravityArrow.setDirection(
+    bodies[0].acceleration.clone().normalize()
+    );
+
+    velArrow2.position.copy(bodies[1].mesh.position);
+    velArrow2.setDirection(
+    bodies[1].velocity.clone().normalize()
+    );
+
+    gravityArrow2.position.copy(bodies[1].mesh.position);
+    gravityArrow2.setDirection(
+    bodies[1].acceleration.clone().normalize()
+    );
+
+    velArrow3.position.copy(bodies[2].mesh.position);
+    velArrow3.setDirection(
+    bodies[2].velocity.clone().normalize()
+    );
+
+    gravityArrow3.position.copy(bodies[2].mesh.position);
+    gravityArrow3.setDirection(
+    bodies[2].acceleration.clone().normalize()
+    );
 
     // corona
     corona.rotation.y += 0.001;

@@ -117,13 +117,13 @@ html, body {
 #left-panel-top {
     position: fixed;
 
-    left: 15px;
-    top: 65px;
+    left: 0px;
+    top: 60px;
 
-    width: 280px;
+    width: 250px;
     height: 180px;
 
-    background: rgba(24, 24, 24, 0.95);
+    background: rgba(24,24,24,0.95);
 
     border: 1px solid #444;
 
@@ -133,15 +133,88 @@ html, body {
 #left-panel-bottom {
     position: fixed;
 
-    left: 15px;
-    top: 260px;
+    left: 0px;
+    top: 255px;
 
-    width: 280px;
+    width: 250px;
     height: 180px;
 
-    background: rgba(24, 24, 24, 0.95);
+    background: rgba(24,24,24,0.95);
 
     border: 1px solid #444;
 
     backdrop-filter: blur(10px);
+}
+
+.panel-header {
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 15px;
+
+    background: #2b2b2b;
+
+    color: white;
+
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+
+    border-bottom: 1px solid #444;
+}
+
+#left-panel-top,
+#left-panel-bottom {
+    position: fixed;
+
+    width: 250px;
+    height: 180px;
+
+    background: rgba(24,24,24,0.95);
+
+    border: 1px solid #444;
+
+    backdrop-filter: blur(10px);
+
+    overflow: hidden;
+}
+
+#body-tabs {
+    position: fixed;
+
+    right: 0px;
+    top: 60px;
+
+    width: 250px;
+
+    display: flex;
+    gap: 8px;
+}
+
+.body-tab {
+    flex: 1;
+
+    height: 42px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #2b2b2b;
+
+    color: white;
+
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+
+    border: 1px solid #444;
+
+    cursor: pointer;
+
+    user-select: none;
+}
+
+.body-tab.active {
+    border-color: white;
 }
