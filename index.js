@@ -40,6 +40,34 @@ const CAMERA_ZOOM_SPEED = 2.5;
 const CAMERA_MIN_DISTANCE = 3;
 const CAMERA_MAX_DISTANCE = 500;
 
+// terminal
+const terminalOutput = document.getElementById("terminal-output");
+let terminalInput = "";
+
+function updateTerminal() {
+terminalOutput.innerHTML = `
+> <span style="color: orange">Three-Body</span> <span style="color: red">Simulation</span> v0.1
+  <br>
+> Type <span style="color: green">"help"</span> for commands
+  <br>
+>> ${terminalInput}<span id="cursor"></span>
+`;
+}
+
+window.addEventListener("keydown", (event) => {
+
+  if (event.key.length === 1) {
+    terminalInput += event.key;
+  }
+
+  if (event.key === "Backspace") {
+    terminalInput = terminalInput.slice(0, -1);
+  }
+
+  updateTerminal();
+
+});
+
 // UI
 const tabs = document.querySelectorAll(".body-tab");
 

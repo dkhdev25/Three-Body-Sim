@@ -103,7 +103,7 @@ html, body {
 
     background: white;
 
-    vertical-align: middle;
+    vertical-align: text-top;
 
     animation: blink 1s infinite;
 }
