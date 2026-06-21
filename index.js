@@ -41,22 +41,25 @@ const CAMERA_MIN_DISTANCE = 3;
 const CAMERA_MAX_DISTANCE = 500;
 
 // terminal
+let terminalHistory = [];
+
 const terminalOutput = document.getElementById("terminal-output");
 let terminalInput = "";
+let simulationRunning = false;
+let simulationPaused = false;
 
 function updateTerminal() {
 terminalOutput.innerHTML = `
 > <span style="color: orange">Three-Body</span> <span style="color: red">Simulation</span> v0.1
-  <br>
 > Type <span style="color: green">"help"</span> for commands
-  <br>
->> ${terminalInput}<span id="cursor"></span>
+${colorize(terminalHistory.join("<br>"))}
+>> ${colorize(terminalInput)}<span id="cursor"></span>
 `;
 }
 
 window.addEventListener("keydown", (event) => {
 
-  if (event.key.length === 1) {
+  if (event.key.length === 1 && terminalInput.length < 35) {
     terminalInput += event.key;
   }
 
@@ -64,9 +67,81 @@ window.addEventListener("keydown", (event) => {
     terminalInput = terminalInput.slice(0, -1);
   }
 
+  if (event.key === "Enter") {
+
+    const command = terminalInput.trim().toLowerCase();
+
+    terminalHistory.push(`> ${terminalInput}`);
+
+    if (command === "help") {
+      terminalHistory.push("Commands: run, restart, pause, resume, reset, debug, clear");
+    }
+
+    if (command === "clear") {
+      terminalHistory = [];
+    }
+
+    if (command === "run") {
+
+      if (simulationRunning) {
+        terminalHistory.push("Simulation is already running. Use restart or reset.");
+      }
+
+      else {
+        simulationRunning = true;
+        simulationPaused = false;
+
+        terminalHistory.push("Simulation started.");
+      }
+
+    }
+
+    if (command === "restart") {
+      // restart simulation
+    }
+
+    if (command === "pause") {
+      simulationPaused = true;
+
+      terminalHistory.push("Simulation paused.");
+    }
+
+    if (command === "resume") {
+      simulationPaused = false;
+      lastTime = performance.now();
+
+      terminalHistory.push("Simulation resumed.");
+    }
+
+    if (command === "reset") {
+      simulationRunning = false;
+      simulationPaused = false;
+
+      terminalHistory.push("Reset not implemented yet.");
+    }
+
+    if (command === "debug") {
+      terminalHistory.push(
+      `Bodies: ${bodies.length} | Running: ${simulationRunning} | Paused: ${simulationPaused}`
+      );
+    }
+
+    terminalInput = "";
+  }
+
   updateTerminal();
 
 });
+
+function colorize(text) {
+  return text
+    .replaceAll(/\bhelp\b/g,
+      '<span style="color: green">help</span>')
+    .replaceAll(/\bclear\b/g,
+      '<span style="color: cyan">clear</span>');
+}
+
+updateTerminal();
 
 // UI
 const tabs = document.querySelectorAll(".body-tab");
@@ -395,6 +470,16 @@ window.addEventListener('resize', () => {
 
 // animation
 function animate( time ) {
+
+    if (!simulationRunning) {
+      composer.render();
+      return;
+    }
+
+    if (simulationPaused) {
+      composer.render();
+      return;
+    }
 
     if (firstFrame) {
       lastTime = time;

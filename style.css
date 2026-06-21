@@ -77,8 +77,8 @@ html, body {
 #terminal-output {
     padding: 8px 15px;
 
-    line-height: 1;
-
+    line-height: 1.4;
+        
     color: #d4d4d4;
 
     font-family: Consolas, monospace;
