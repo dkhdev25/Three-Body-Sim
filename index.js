@@ -57,6 +57,24 @@ ${colorize(terminalHistory.join("<br>"))}
 `;
 }
 
+function resetBodies() {
+
+  sunSphere.position.copy(BODY1_START_POS);
+  sunSphere2.position.copy(BODY2_START_POS);
+  sunSphere3.position.copy(BODY3_START_POS);
+
+  bodies[0].velocity.copy(BODY1_START_VEL);
+  bodies[1].velocity.copy(BODY2_START_VEL);
+  bodies[2].velocity.copy(BODY3_START_VEL);
+
+  bodies.forEach(body => {
+    body.frozen = false;
+    body.acceleration.set(0, 0, 0);
+  });
+
+  updateArrows();
+}
+
 window.addEventListener("keydown", (event) => {
 
   if (event.key.length === 1 && terminalInput.length < 35) {
@@ -84,12 +102,13 @@ window.addEventListener("keydown", (event) => {
     if (command === "run") {
 
       if (simulationRunning) {
-        terminalHistory.push("Simulation is already running. Use restart or reset.");
+        terminalHistory.push("Simulation already running.");
       }
 
       else {
         simulationRunning = true;
         simulationPaused = false;
+        lastTime = performance.now();
 
         terminalHistory.push("Simulation started.");
       }
@@ -97,27 +116,58 @@ window.addEventListener("keydown", (event) => {
     }
 
     if (command === "restart") {
-      // restart simulation
+
+    resetBodies();
+
+    simulationRunning = true;
+    simulationPaused = false;
+
+    terminalHistory.push("Simulation restarted.");
     }
 
     if (command === "pause") {
-      simulationPaused = true;
 
+      if (!simulationRunning) {
+        terminalHistory.push("Simulation is not running.");
+      }
+
+      else if (simulationPaused) {
+        terminalHistory.push("Simulation already paused.");
+      }
+
+      else {
+      simulationPaused = true;
       terminalHistory.push("Simulation paused.");
+       }
     }
 
     if (command === "resume") {
-      simulationPaused = false;
-      lastTime = performance.now();
 
-      terminalHistory.push("Simulation resumed.");
+      if (!simulationRunning) {
+        terminalHistory.push("Simulation is not running.");
+      }
+
+      else if (!simulationPaused) {
+        terminalHistory.push("Simulation is not paused.");
+      }
+
+      else {
+        simulationPaused = false;
+        lastTime = performance.now();
+
+        terminalHistory.push("Simulation resumed.");
+      }
+
     }
 
     if (command === "reset") {
+
+      resetBodies();
+
       simulationRunning = false;
       simulationPaused = false;
 
-      terminalHistory.push("Reset not implemented yet.");
+      terminalHistory.push("Simulation reset.");
     }
 
     if (command === "debug") {
@@ -138,7 +188,19 @@ function colorize(text) {
     .replaceAll(/\bhelp\b/g,
       '<span style="color: green">help</span>')
     .replaceAll(/\bclear\b/g,
-      '<span style="color: cyan">clear</span>');
+      '<span style="color: cyan">clear</span>')
+    .replaceAll(/\bdebug\b/g,
+      '<span style="color: gold">debug</span>')
+    .replaceAll(/\brestart\b/g,
+      '<span style="color: orange">restart</span>')
+    .replaceAll(/\bpause\b/g,
+      '<span style="color: mediumorchid">pause</span>')
+    .replaceAll(/\brun\b/g,
+      '<span style="color: limegreen">run</span>')
+    .replaceAll(/\bresume\b/g,
+      '<span style="color: white">resume</span>')
+    .replaceAll(/\breset\b/g,
+      '<span style="color: tomato">reset</span>');
 }
 
 updateTerminal();
@@ -305,6 +367,40 @@ const gravityArrow3 = new THREE.ArrowHelper(
 );
 
 scene.add(gravityArrow3);
+
+function updateArrows() {
+
+  velArrow.position.copy(bodies[0].mesh.position);
+  velArrow.setDirection(
+    bodies[0].velocity.clone().normalize()
+  );
+
+  gravityArrow.position.copy(bodies[0].mesh.position);
+  gravityArrow.setDirection(
+    bodies[0].acceleration.clone().normalize()
+  );
+
+  velArrow2.position.copy(bodies[1].mesh.position);
+  velArrow2.setDirection(
+    bodies[1].velocity.clone().normalize()
+  );
+
+  gravityArrow2.position.copy(bodies[1].mesh.position);
+  gravityArrow2.setDirection(
+    bodies[1].acceleration.clone().normalize()
+  );
+
+  velArrow3.position.copy(bodies[2].mesh.position);
+  velArrow3.setDirection(
+    bodies[2].velocity.clone().normalize()
+  );
+
+  gravityArrow3.position.copy(bodies[2].mesh.position);
+  gravityArrow3.setDirection(
+    bodies[2].acceleration.clone().normalize()
+  );
+
+}
 
 // corona
 const coronaGeometry = new THREE.SphereGeometry(1.25, 32, 16);
@@ -553,35 +649,7 @@ function animate( time ) {
     }
 
     // arrows
-    velArrow.position.copy(bodies[0].mesh.position);
-    velArrow.setDirection(
-    bodies[0].velocity.clone().normalize()
-    );
-
-    gravityArrow.position.copy(bodies[0].mesh.position);
-    gravityArrow.setDirection(
-    bodies[0].acceleration.clone().normalize()
-    );
-
-    velArrow2.position.copy(bodies[1].mesh.position);
-    velArrow2.setDirection(
-    bodies[1].velocity.clone().normalize()
-    );
-
-    gravityArrow2.position.copy(bodies[1].mesh.position);
-    gravityArrow2.setDirection(
-    bodies[1].acceleration.clone().normalize()
-    );
-
-    velArrow3.position.copy(bodies[2].mesh.position);
-    velArrow3.setDirection(
-    bodies[2].velocity.clone().normalize()
-    );
-
-    gravityArrow3.position.copy(bodies[2].mesh.position);
-    gravityArrow3.setDirection(
-    bodies[2].acceleration.clone().normalize()
-    );
+    updateArrows();
 
     // corona
     corona.rotation.y += 0.001;
