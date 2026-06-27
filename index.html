@@ -20,14 +20,85 @@
         <div class="body-tab">Body #2</div>
         <div class="body-tab">Body #3</div>
       </div>
-      
-        <div id="left-panel-top">
-          <div class="panel-header">GLOBAL SETTINGS</div>
-        </div>
 
         <div id="left-panel-bottom">
           <div class="panel-header">SELECTED STAR</div>
         </div>
+
+        <div id="left-panel-top">
+    <div class="panel-header">GLOBAL SETTINGS</div>
+
+    <div class="panel-content">
+<div class="setting-row">
+    <label>Gravity</label>
+    <input id="gravity-input" type="number" value="1" step="0.1">
+</div>
+
+<div class="setting-row">
+    <label>Speed</label>
+    <input id="speed-input" type="number" value="10">
+</div>
+
+<div class="setting-row">
+    <label>Freeze</label>
+    <input id="freeze-input" type="number" value="1000">
+</div>
+
+<div class="setting-row">
+    <label>Zoom Speed</label>
+    <input id="zoom-input" type="number" value="2.5" step="0.1">
+</div>
+
+<div class="setting-row">
+    <label>Min Zoom</label>
+    <input id="minzoom-input" type="number" value="3">
+</div>
+
+<div class="setting-row">
+    <label>Max Zoom</label>
+    <input id="maxzoom-input" type="number" value="500">
+</div>
+
+<div class="setting-row">
+    <label>Bloom</label>
+    <input id="bloom-input" type="number" value="2" step="0.1">
+</div>
+
+<div class="setting-row">
+    <label>Velocity</label>
+    <button id="velocity-toggle" class="toggle on">ON</button>
+</div>
+
+<div class="setting-row">
+    <label>Gravity</label>
+    <button id="gravity-toggle" class="toggle on">ON</button>
+</div>
+
+<div class="setting-row">
+    <label>Trails</label>
+    <button id="trail-toggle" class="toggle off">OFF</button>
+</div>
+
+<div class="setting-row">
+    <label>Resolution</label>
+    <select id="resolution-select">
+        <option>100%</option>
+        <option>75%</option>
+        <option>50%</option>
+    </select>
+</div>
+
+<div class="setting-row">
+    <label>Stars</label>
+    <select id="stars-select">
+        <option>Low</option>
+        <option>Medium</option>
+        <option selected>High</option>
+    </select>
+</div>
+
+    </div>
+</div>
 
     <div id="terminal">
       <div id="terminal-header">TERMINAL</div>
