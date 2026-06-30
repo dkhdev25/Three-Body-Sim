@@ -38,6 +38,130 @@ const CAMERA_ZOOM_SPEED = 2.5;
 const CAMERA_MIN_DISTANCE = 3;
 const CAMERA_MAX_DISTANCE = 500;
 
+const DEFAULTS = {
+  G: 1,
+  SIM_SPEED: 10,
+  FREEZE_DISTANCE: 1000,
+  zoomSpeed: 2.5,
+  minDistance: 3,
+  maxDistance: 500,
+  bloom: 2
+};
+
+// global settings
+const gravityInput = document.getElementById("gravity-input");
+const speedInput = document.getElementById("speed-input");
+const freezeInput = document.getElementById("freeze-input");
+
+const zoomInput = document.getElementById("zoom-input");
+const minZoomInput = document.getElementById("minzoom-input");
+const maxZoomInput = document.getElementById("maxzoom-input");
+
+const bloomInput = document.getElementById("bloom-input");
+
+const velocityToggle = document.getElementById("velocity-toggle");
+const gravityToggle = document.getElementById("gravity-toggle");
+const trailToggle = document.getElementById("trail-toggle");
+
+const resolutionSelect = document.getElementById("resolution-select");
+
+// numbers
+gravityInput.addEventListener("input", () => {
+  G = clamp(Number(gravityInput.value), 0, 5);
+});
+
+speedInput.addEventListener("input", () => {
+  SIM_SPEED = clamp(Number(speedInput.value), 0.1, 20);
+});
+
+freezeInput.addEventListener("input", () => {
+  FREEZE_DISTANCE = clamp(Number(freezeInput.value), 10, 5000);
+});
+
+zoomInput.addEventListener("input", () => {
+  controls.zoomSpeed = clamp(Number(zoomInput.value), 0.1, 10);
+});
+
+minZoomInput.addEventListener("input", () => {
+  let min = Number(minZoomInput.value);
+  let max = Number(maxZoomInput.value);
+
+  min = clamp(min, 1, 1000);
+
+  if (min >= max) {
+    max = min + 10;
+    maxZoomInput.value = max;
+  }
+
+  controls.minDistance = min;
+  controls.maxDistance = max;
+});
+
+maxZoomInput.addEventListener("input", () => {
+  let min = Number(minZoomInput.value);
+  let max = Number(maxZoomInput.value);
+
+  max = clamp(max, 1, 5000);
+
+  if (max <= min) {
+    min = max - 10;
+    minZoomInput.value = min;
+  }
+
+  controls.minDistance = min;
+  controls.maxDistance = max;
+});
+
+bloomInput.addEventListener("input", () => {
+    bloomPass.strength = Number(bloomInput.value);
+});
+
+// toggles
+let showVelocity = true;
+let showGravity = true;
+let showTrails = false;
+
+velocityToggle.addEventListener("click", () => {
+
+    showVelocity = !showVelocity;
+
+    velocityToggle.textContent = showVelocity ? "ON" : "OFF";
+    velocityToggle.className = showVelocity ? "toggle on" : "toggle off";
+
+});
+
+gravityToggle.addEventListener("click", () => {
+
+    showGravity = !showGravity;
+
+    gravityToggle.textContent = showGravity ? "ON" : "OFF";
+    gravityToggle.className = showGravity ? "toggle on" : "toggle off";
+
+});
+
+trailToggle.addEventListener("click", () => {
+
+    showTrails = !showTrails;
+
+    trailToggle.textContent = showTrails ? "ON" : "OFF";
+    trailToggle.className = showTrails ? "toggle on" : "toggle off";
+
+});
+
+// resolution
+resolutionSelect.addEventListener("change", () => {
+
+    const scale = parseInt(resolutionSelect.value) / 100;
+
+    renderer.setPixelRatio(window.devicePixelRatio * scale);
+
+});
+
+// clamp
+function clamp(val, min, max) {
+  return Math.min(Math.max(val, min), max);
+}
+
 // terminal
 let terminalHistory = [];
 const terminalOutput = document.getElementById("terminal-output");
@@ -71,7 +195,51 @@ function resetBodies() {
   updateArrows();
 }
 
+function resetSettings() {
+  showVelocity = true;
+  showGravity = true;
+  showTrails = false;
+
+  velocityToggle.textContent = "ON";
+  velocityToggle.className = "toggle on";
+
+  gravityToggle.textContent = "ON";
+  gravityToggle.className = "toggle on";
+
+  trailToggle.textContent = "OFF";
+  trailToggle.className = "toggle off";
+
+  G = DEFAULTS.G;
+  SIM_SPEED = DEFAULTS.SIM_SPEED;
+  FREEZE_DISTANCE = DEFAULTS.FREEZE_DISTANCE;
+
+  controls.zoomSpeed = DEFAULTS.zoomSpeed;
+  controls.minDistance = DEFAULTS.minDistance;
+  controls.maxDistance = DEFAULTS.maxDistance;
+
+  bloomPass.strength = DEFAULTS.bloom;
+
+  gravityInput.value = G;
+  speedInput.value = SIM_SPEED;
+  freezeInput.value = FREEZE_DISTANCE;
+
+  zoomInput.value = controls.zoomSpeed;
+  minZoomInput.value = controls.minDistance;
+  maxZoomInput.value = controls.maxDistance;
+
+  bloomInput.value = bloomPass.strength;
+}
+
 window.addEventListener("keydown", (event) => {
+  
+  if (
+  event.target.tagName === "INPUT" ||
+  event.target.tagName === "SELECT" ||
+  event.target.tagName === "TEXTAREA"
+) {
+  return;
+}
+
   if (event.key.length === 1 && terminalInput.length < 35) {
     terminalInput += event.key;
   }
@@ -108,6 +276,7 @@ window.addEventListener("keydown", (event) => {
       resetBodies();
       simulationRunning = true;
       simulationPaused = false;
+      lastTime = performance.now();
       terminalHistory.push("Simulation restarted.");
     }
 
@@ -136,9 +305,12 @@ window.addEventListener("keydown", (event) => {
 
     if (command === "reset") {
       resetBodies();
+      resetSettings();
+
       simulationRunning = false;
       simulationPaused = false;
-      terminalHistory.push("Simulation reset.");
+
+      terminalHistory.push("Simulation + settings reset.");
     }
 
     if (command === "debug") {
@@ -497,9 +669,20 @@ function animate(time) {
     if (A.frozen) continue;
     A.velocity.add(A.acceleration.clone().multiplyScalar(dt));
     A.mesh.position.add(A.velocity.clone().multiplyScalar(dt));
+
+    if (A.mesh.position.length() > FREEZE_DISTANCE) {
+      A.frozen = true;
+    }
   }
 
   updateArrows();
+  velArrow.visible = showVelocity;
+  velArrow2.visible = showVelocity;
+  velArrow3.visible = showVelocity;
+
+  gravityArrow.visible = showGravity;
+  gravityArrow2.visible = showGravity;
+  gravityArrow3.visible = showGravity;
 
   corona.rotation.y += 0.001;
   corona2.rotation.y += 0.001;
