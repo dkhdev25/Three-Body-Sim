@@ -31,7 +31,7 @@ const BODY2_START_POS = new THREE.Vector3(-18, -10, 0);
 const BODY3_START_POS = new THREE.Vector3(18, -10, 0);
 
 const BODY1_START_VEL = new THREE.Vector3(-0.30, 0, 0);
-const BODY2_START_VEL = new THREE.Vector3(0.20, 0.30, 0);
+const BODY2_START_VEL = new THREE.Vector3(0.20, 0.30, 0.15);
 const BODY3_START_VEL = new THREE.Vector3(0.20, -0.30, 0);
 
 const CAMERA_ZOOM_SPEED = 2.5;
@@ -119,7 +119,7 @@ bloomInput.addEventListener("input", () => {
 // toggles
 let showVelocity = true;
 let showGravity = true;
-let showTrails = false;
+let showTrails = true;
 let trailResolution = 4;
 
 velocityToggle.addEventListener("click", () => {
@@ -153,10 +153,26 @@ trailToggle.addEventListener("click", () => {
 resolutionSelect.addEventListener("change", () => {
 
     const scale = parseInt(resolutionSelect.value) / 100;
-
     renderer.setPixelRatio(window.devicePixelRatio * scale);
 
+    if (scale >= 1) trailResolution = 1;
+    else if (scale >= 0.75) trailResolution = 2;
+    else trailResolution = 4;
+
 });
+
+function initUI() {
+  velocityToggle.textContent = showVelocity ? "ON" : "OFF";
+  velocityToggle.className = showVelocity ? "toggle on" : "toggle off";
+
+  gravityToggle.textContent = showGravity ? "ON" : "OFF";
+  gravityToggle.className = showGravity ? "toggle on" : "toggle off";
+
+  trailToggle.textContent = showTrails ? "ON" : "OFF";
+  trailToggle.className = showTrails ? "toggle on" : "toggle off";
+}
+
+initUI();
 
 // clamp
 function clamp(val, min, max) {
@@ -207,7 +223,7 @@ function resetBodies() {
 function resetSettings() {
   showVelocity = true;
   showGravity = true;
-  showTrails = false;
+  showTrails = true;
 
   velocityToggle.textContent = "ON";
   velocityToggle.className = "toggle on";
@@ -215,8 +231,8 @@ function resetSettings() {
   gravityToggle.textContent = "ON";
   gravityToggle.className = "toggle on";
 
-  trailToggle.textContent = "OFF";
-  trailToggle.className = "toggle off";
+  trailToggle.textContent = "ON";
+  trailToggle.className = "toggle on";
 
   G = DEFAULTS.G;
   SIM_SPEED = DEFAULTS.SIM_SPEED;
