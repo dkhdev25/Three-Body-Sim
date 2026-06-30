@@ -120,6 +120,7 @@ bloomInput.addEventListener("input", () => {
 let showVelocity = true;
 let showGravity = true;
 let showTrails = false;
+let trailResolution = 4;
 
 velocityToggle.addEventListener("click", () => {
 
@@ -192,6 +193,14 @@ function resetBodies() {
     body.acceleration.set(0, 0, 0);
   });
 
+  bodies.forEach(body => {
+    body.trailPoints = [];
+    body.trailGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute([], 3)
+    );
+  });
+
   updateArrows();
 }
 
@@ -231,7 +240,7 @@ function resetSettings() {
 }
 
 window.addEventListener("keydown", (event) => {
-  
+
   if (
   event.target.tagName === "INPUT" ||
   event.target.tagName === "SELECT" ||
@@ -416,23 +425,57 @@ const bodies = [
     mass: sun1Mass,
     velocity: sun1Vel,
     acceleration: new THREE.Vector3(),
-    frozen: false
+    frozen: false,
+
+    trailPoints: [],
+    trailGeometry: new THREE.BufferGeometry(),
+    trail: null
   },
   {
     mesh: sunSphere2,
     mass: sun2Mass,
     velocity: sun2Vel,
     acceleration: new THREE.Vector3(),
-    frozen: false
+    frozen: false,
+
+    trailPoints: [],
+    trailGeometry: new THREE.BufferGeometry(),
+    trail: null
   },
   {
     mesh: sunSphere3,
     mass: sun3Mass,
     velocity: sun3Vel,
     acceleration: new THREE.Vector3(),
-    frozen: false
+    frozen: false,
+
+    trailPoints: [],
+    trailGeometry: new THREE.BufferGeometry(),
+    trail: null
   }
 ];
+
+// trails
+const trailColors = [
+  0xffdd99,
+  0xffdd88,
+  0xffe8aa
+];
+
+bodies.forEach((body, i) => {
+
+  const material = new THREE.LineBasicMaterial({
+    color: trailColors[i]
+  });
+
+  body.trail = new THREE.Line(
+    body.trailGeometry,
+    material
+  );
+
+  scene.add(body.trail);
+
+});
 
 // arrow creation
 const velArrow = new THREE.ArrowHelper(
@@ -621,6 +664,7 @@ composer.addPass(bloomPass);
 
 let lastTime = 0;
 let firstFrame = true;
+let trailFrame = 0;
 
 // animation
 function animate(time) {
@@ -636,12 +680,14 @@ function animate(time) {
 
   if (firstFrame) {
     lastTime = time;
+    trailFrame++;
     firstFrame = false;
     return;
   }
 
   const dt = ((time - lastTime) / 1000) * SIM_SPEED;
   lastTime = time;
+  trailFrame++;
 
   controls.update();
 
@@ -675,6 +721,26 @@ function animate(time) {
     }
   }
 
+  if (showTrails && trailFrame % trailResolution === 0) {
+
+    for (const body of bodies) {
+
+        body.trailPoints.push(
+            body.mesh.position.x,
+            body.mesh.position.y,
+            body.mesh.position.z
+        );
+
+        body.trailGeometry.setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(body.trailPoints, 3)
+        );
+
+        body.trailGeometry.computeBoundingSphere();
+    }
+
+  }
+
   updateArrows();
   velArrow.visible = showVelocity;
   velArrow2.visible = showVelocity;
@@ -683,6 +749,10 @@ function animate(time) {
   gravityArrow.visible = showGravity;
   gravityArrow2.visible = showGravity;
   gravityArrow3.visible = showGravity;
+
+  bodies.forEach(body => {
+    body.trail.visible = showTrails;
+  });
 
   corona.rotation.y += 0.001;
   corona2.rotation.y += 0.001;
