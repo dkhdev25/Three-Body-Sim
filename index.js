@@ -65,6 +65,17 @@ const trailToggle = document.getElementById("trail-toggle");
 
 const resolutionSelect = document.getElementById("resolution-select");
 
+// local settings
+const massInput = document.getElementById("mass-input");
+
+const posXInput = document.getElementById("posx-input");
+const posYInput = document.getElementById("posy-input");
+const posZInput = document.getElementById("posz-input");
+
+const velXInput = document.getElementById("velx-input");
+const velYInput = document.getElementById("vely-input");
+const velZInput = document.getElementById("velz-input");
+
 // numbers
 gravityInput.addEventListener("input", () => {
   G = clamp(Number(gravityInput.value), 0, 5);
@@ -365,15 +376,23 @@ function colorize(text) {
 updateTerminal();
 
 // UI
+let selectedBody = 0;
 const tabs = document.querySelectorAll(".body-tab");
 
-tabs.forEach(tab => {
-  tab.addEventListener("click", () => {
-    tabs.forEach(tab => {
-      tab.classList.remove("active");
+tabs.forEach((tab, index) => {
+
+    tab.addEventListener("click", () => {
+
+        tabs.forEach(tab => {
+            tab.classList.remove("active");
+        });
+
+        tab.classList.add("active");
+
+        selectedBody = index;
+
     });
-    tab.classList.add("active");
-  });
+
 });
 
 // setup
