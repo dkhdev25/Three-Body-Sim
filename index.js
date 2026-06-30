@@ -165,6 +165,7 @@ resolutionSelect.addEventListener("change", () => {
 
     const scale = parseInt(resolutionSelect.value) / 100;
     renderer.setPixelRatio(window.devicePixelRatio * scale);
+    composer.setSize(window.innerWidth, window.innerHeight);
 
     if (scale >= 1) trailResolution = 1;
     else if (scale >= 0.75) trailResolution = 2;
@@ -206,6 +207,66 @@ ${colorize(terminalHistory.join("<br>"))}
 `;
 }
 
+function updateLocalSettings() {
+
+  const body = bodies[selectedBody];
+  if (!body) return;
+  if (!bodies.length) return;
+  if (!bodies[selectedBody]) return;
+
+  massInput.value = body.mass;
+
+  posXInput.value = body.mesh.position.x.toFixed(2);
+  posYInput.value = body.mesh.position.y.toFixed(2);
+  posZInput.value = body.mesh.position.z.toFixed(2);
+
+  velXInput.value = body.velocity.x.toFixed(2);
+  velYInput.value = body.velocity.y.toFixed(2);
+  velZInput.value = body.velocity.z.toFixed(2);
+
+}
+
+function updateSelectedBody() {
+
+    const body = bodies[selectedBody];
+    if (!body) return;
+    if (!bodies.length) return;
+    if (!bodies[selectedBody]) return;
+
+    body.mass = Math.max(1, Number(massInput.value));
+
+    body.mesh.scale.setScalar(body.mass / 10);
+
+    body.mesh.position.set(
+        Number(posXInput.value),
+        Number(posYInput.value),
+        Number(posZInput.value)
+    );
+
+    updateArrows();
+
+    body.velocity.set(
+        Number(velXInput.value),
+        Number(velYInput.value),
+        Number(velZInput.value)
+    );
+
+}
+
+[
+    massInput,
+    posXInput,
+    posYInput,
+    posZInput,
+    velXInput,
+    velYInput,
+    velZInput
+].forEach(input => {
+
+    input.addEventListener("input", updateSelectedBody);
+
+});
+
 function resetBodies() {
   sunSphere.position.copy(BODY1_START_POS);
   sunSphere2.position.copy(BODY2_START_POS);
@@ -214,6 +275,16 @@ function resetBodies() {
   bodies[0].velocity.copy(BODY1_START_VEL);
   bodies[1].velocity.copy(BODY2_START_VEL);
   bodies[2].velocity.copy(BODY3_START_VEL);
+
+  bodies[0].mass = BODY1_MASS;
+  bodies[1].mass = BODY2_MASS;
+  bodies[2].mass = BODY3_MASS;
+
+  sunSphere.scale.setScalar(BODY1_MASS / 10);
+  sunSphere2.scale.setScalar(BODY2_MASS / 10);
+  sunSphere3.scale.setScalar(BODY3_MASS / 10);
+
+  updateLocalSettings();
 
   bodies.forEach(body => {
     body.frozen = false;
@@ -390,6 +461,7 @@ tabs.forEach((tab, index) => {
         tab.classList.add("active");
 
         selectedBody = index;
+        updateLocalSettings();
 
     });
 
@@ -443,21 +515,18 @@ sunSphere3.position.copy(BODY3_START_POS);
 scene.add(sunSphere3);
 
 sunSphere.scale.setScalar(BODY1_MASS / 10);
-const sun1Mass = BODY1_MASS;
 const sun1Vel = BODY1_START_VEL.clone();
 
 sunSphere2.scale.setScalar(BODY2_MASS / 10);
-const sun2Mass = BODY2_MASS;
 const sun2Vel = BODY2_START_VEL.clone();
 
 sunSphere3.scale.setScalar(BODY3_MASS / 10);
-const sun3Mass = BODY3_MASS;
 const sun3Vel = BODY3_START_VEL.clone();
 
 const bodies = [
   {
     mesh: sunSphere,
-    mass: sun1Mass,
+    mass: BODY1_MASS,
     velocity: sun1Vel,
     acceleration: new THREE.Vector3(),
     frozen: false,
@@ -468,7 +537,7 @@ const bodies = [
   },
   {
     mesh: sunSphere2,
-    mass: sun2Mass,
+    mass: BODY2_MASS,
     velocity: sun2Vel,
     acceleration: new THREE.Vector3(),
     frozen: false,
@@ -479,7 +548,7 @@ const bodies = [
   },
   {
     mesh: sunSphere3,
-    mass: sun3Mass,
+    mass: BODY3_MASS,
     velocity: sun3Vel,
     acceleration: new THREE.Vector3(),
     frozen: false,
@@ -489,6 +558,8 @@ const bodies = [
     trail: null
   }
 ];
+
+updateLocalSettings();
 
 // trails
 const trailColors = [
@@ -580,23 +651,36 @@ const gravityArrow3 = new THREE.ArrowHelper(
 scene.add(gravityArrow3);
 
 function updateArrows() {
+
+  function safeDirection(vec) {
+    const v = vec.clone();
+    if (v.length() < 0.0001) {
+      return new THREE.Vector3(1, 0, 0); // fallback direction
+    }
+    return v.normalize();
+  }
+
+  // Body 1
   velArrow.position.copy(bodies[0].mesh.position);
-  velArrow.setDirection(bodies[0].velocity.clone().normalize());
+  velArrow.setDirection(safeDirection(bodies[0].velocity));
 
   gravityArrow.position.copy(bodies[0].mesh.position);
-  gravityArrow.setDirection(bodies[0].acceleration.clone().normalize());
+  gravityArrow.setDirection(safeDirection(bodies[0].acceleration));
 
+  // Body 2
   velArrow2.position.copy(bodies[1].mesh.position);
-  velArrow2.setDirection(bodies[1].velocity.clone().normalize());
+  velArrow2.setDirection(safeDirection(bodies[1].velocity));
 
   gravityArrow2.position.copy(bodies[1].mesh.position);
-  gravityArrow2.setDirection(bodies[1].acceleration.clone().normalize());
+  gravityArrow2.setDirection(safeDirection(bodies[1].acceleration));
 
+  // Body 3
   velArrow3.position.copy(bodies[2].mesh.position);
-  velArrow3.setDirection(bodies[2].velocity.clone().normalize());
+  velArrow3.setDirection(safeDirection(bodies[2].velocity));
 
   gravityArrow3.position.copy(bodies[2].mesh.position);
-  gravityArrow3.setDirection(bodies[2].acceleration.clone().normalize());
+  gravityArrow3.setDirection(safeDirection(bodies[2].acceleration));
+
 }
 
 // corona
@@ -736,10 +820,16 @@ function animate(time) {
       if (A === B) continue;
 
       const direction = new THREE.Vector3().subVectors(B.mesh.position, A.mesh.position);
-      const distance = Math.max(direction.length(), 2);
-      direction.normalize();
 
-      const forceStrength = (G * A.mass * B.mass) / (distance * distance);
+      const softening = 2; // 2–20 usually
+      const distanceSq = direction.lengthSq() + softening * softening;
+
+      const distance = Math.sqrt(distanceSq);
+
+      direction.divideScalar(distance); // normalize safely using softened distance
+
+      const forceStrength = (G * A.mass * B.mass) / distanceSq;
+
       totalForce.add(direction.multiplyScalar(forceStrength));
     }
 
@@ -748,8 +838,13 @@ function animate(time) {
 
   for (const A of bodies) {
     if (A.frozen) continue;
-    A.velocity.add(A.acceleration.clone().multiplyScalar(dt));
-    A.mesh.position.add(A.velocity.clone().multiplyScalar(dt));
+    A.velocity.addScaledVector(A.acceleration, dt * 0.5);
+  }
+
+  for (const A of bodies) {
+    if (A.frozen) continue;
+    A.velocity.addScaledVector(A.acceleration, dt * 0.5);
+    A.mesh.position.addScaledVector(A.velocity, dt);
 
     if (A.mesh.position.length() > FREEZE_DISTANCE) {
       A.frozen = true;
@@ -798,5 +893,6 @@ function animate(time) {
   corona2.scale.setScalar(pulse);
   corona3.scale.setScalar(pulse);
 
+  updateLocalSettings();
   composer.render();
 }
