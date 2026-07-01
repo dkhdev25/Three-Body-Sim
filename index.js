@@ -215,12 +215,20 @@ let simulationRunning = false;
 let simulationPaused = false;
 
 function updateTerminal() {
-  terminalOutput.innerHTML = `
-> <span style="color: orange">Three-Body</span> <span style="color: red">Simulation</span> v0.1
-> Type <span style="color: green">"help"</span> for commands
-${colorize(terminalHistory.join("<br>"))}
->> ${colorize(terminalInput)}<span id="cursor"></span>
-`;
+  terminalOutput.innerHTML =
+    `> <span style="color: orange">Three-Body</span> <span style="color: red">Simulation</span> v0.9<br>` +
+    `> Type <span style="color: green">"help"</span> for commands<br>` +
+    (terminalHistory.length ? colorize(terminalHistory.join("<br>")) + "<br>" : "") +
+    `>> ${colorize(terminalInput)}<span id="cursor"></span>`;
+
+  requestAnimationFrame(() => {
+    const shouldStickToBottom =
+      terminalOutput.scrollHeight - terminalOutput.scrollTop - terminalOutput.clientHeight < 40;
+
+    if (shouldStickToBottom) {
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+  });
 }
 
 function updateLocalSettings() {
