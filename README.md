@@ -31,16 +31,17 @@ Start simulating the world of 3-body now:
 ## FEATURES  
 
 - Simulates the physics of a realistic 3-body system.  
-- Has adjustable global and local simulation parameters.  
+- Has adjustable simulation parameters.  
 - Compatible with a wide range of devices and runs in your browser.  
 - Rendered in 3-dimensional space.  
-- Easy to use UI.  
+- Easy to use UI.
+- Neat vfx.
 
 ## TECHNOLOGY  
 
 This project was made with Three.js and GitHub Codespaces.  
 
-I used it because I needed to render 3D graphics using JavaScript and make  
+I used them because I needed to render 3D graphics using JavaScript and make  
 the simulation compatible with other devices.  
 
 ## CREDIT  
