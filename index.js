@@ -37,6 +37,8 @@ const BODY3_START_VEL = new THREE.Vector3(0.20, -0.30, 0);
 const CAMERA_ZOOM_SPEED = 2.5;
 const CAMERA_MIN_DISTANCE = 3;
 const CAMERA_MAX_DISTANCE = 500;
+const DEFAULT_CAMERA_POS = new THREE.Vector3(0, 0, 65);
+const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
 
 const DEFAULTS = {
   G: 1,
@@ -47,6 +49,12 @@ const DEFAULTS = {
   maxDistance: 500,
   bloom: 2
 };
+
+function resetCamera() {
+  camera.position.copy(DEFAULT_CAMERA_POS);
+  controls.target.copy(DEFAULT_CAMERA_TARGET);
+  controls.update();
+}
 
 // global settings
 const gravityInput = document.getElementById("gravity-input");
@@ -66,6 +74,7 @@ const trailToggle = document.getElementById("trail-toggle");
 const resolutionSelect = document.getElementById("resolution-select");
 
 // local settings
+const cameraFollowToggle = document.getElementById("camera-follow-toggle");
 const massInput = document.getElementById("mass-input");
 
 const posXInput = document.getElementById("posx-input");
@@ -132,6 +141,13 @@ let showVelocity = true;
 let showGravity = true;
 let showTrails = true;
 let trailResolution = 4;
+
+cameraFollowToggle.addEventListener("click", () => {
+  cameraFollow = !cameraFollow;
+
+  cameraFollowToggle.textContent = cameraFollow ? "ON" : "OFF";
+  cameraFollowToggle.className = cameraFollow ? "toggle on" : "toggle off";
+});
 
 velocityToggle.addEventListener("click", () => {
 
@@ -335,6 +351,10 @@ function resetSettings() {
   maxZoomInput.value = controls.maxDistance;
 
   bloomInput.value = bloomPass.strength;
+
+  camera.position.copy(DEFAULT_CAMERA_POS);
+  controls.target.copy(DEFAULT_CAMERA_TARGET);
+  controls.update();
 }
 
 window.addEventListener("keydown", (event) => {
@@ -385,6 +405,10 @@ window.addEventListener("keydown", (event) => {
       simulationPaused = false;
       lastTime = performance.now();
       terminalHistory.push("Simulation restarted.");
+
+      camera.position.copy(DEFAULT_CAMERA_POS);
+      controls.target.copy(DEFAULT_CAMERA_TARGET);
+      controls.update();
     }
 
     if (command === "pause") {
@@ -448,6 +472,7 @@ updateTerminal();
 
 // UI
 let selectedBody = 0;
+let cameraFollow = true;
 const tabs = document.querySelectorAll(".body-tab");
 
 tabs.forEach((tab, index) => {
@@ -892,6 +917,19 @@ function animate(time) {
   corona.scale.setScalar(pulse);
   corona2.scale.setScalar(pulse);
   corona3.scale.setScalar(pulse);
+
+  if (cameraFollow && bodies[selectedBody]) {
+    const target = bodies[selectedBody].mesh.position;
+
+    const desiredPos = new THREE.Vector3(
+      target.x + 25,
+      target.y + 15,
+      target.z + 25
+    );
+
+    camera.position.lerp(desiredPos, 0.08);
+    controls.target.lerp(target, 0.08);
+  }
 
   updateLocalSettings();
   composer.render();
